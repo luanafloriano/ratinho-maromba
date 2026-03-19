@@ -1,0 +1,23 @@
+/* Remove margens e scrollbars padrão do navegador */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #1a1a2e; /* Fundo escuro roxo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* O canvas criado pelo p5.js fica centralizado */
+canvas {
+  display: block;
+  border: 3px solid #e94560;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+}
