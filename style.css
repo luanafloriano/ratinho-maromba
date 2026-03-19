@@ -1,23 +1,25 @@
-/* Remove margens e scrollbars padrão do navegador */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Impede seleção de texto ao arrastar o dedo */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Impede zoom ao tocar duas vezes (iOS/Android) */
+  touch-action: none;
 }
 
-body {
-  background-color: #1a1a2e; /* Fundo escuro roxo */
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a2e;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  overflow: hidden;
 }
 
-/* O canvas criado pelo p5.js fica centralizado */
 canvas {
   display: block;
-  border: 3px solid #e94560;
-  border-radius: 8px;
-  box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+  /* O canvas vai se ajustar ao tamanho da tela via p5.js */
 }
