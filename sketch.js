@@ -139,6 +139,8 @@ function reiniciar() {
   emTransicao    = false;
   estado         = 'jogando';
   frameCount     = 0;
+  // Inicia a música (só funciona após interação do usuário — regra dos browsers)
+  iniciarMusica();
 }
 
 // ============================================================
@@ -270,6 +272,8 @@ function keyPressed() {
     if (estado === 'inicio')    reiniciar();
     if (estado === 'transicao') estado = 'jogando';
   }
+  // M para mudo/des-mudo
+  if (key === 'm' || key === 'M') toggleMudo();
 }
 
 function mousePressed() {
@@ -286,6 +290,9 @@ function touchStarted() {
 function touchMoved() { return false; }
 
 function botaoClicado(x, y) {
+  // Botão de mudo funciona em qualquer estado
+  if (clicouMudo(x, y)) { toggleMudo(); return; }
+
   if (estado === 'inicio')    { if (dentroBtn(x, y, LARGURA/2, ALTURA/2 + 140, 220, 55)) reiniciar(); }
   if (estado === 'transicao') { estado = 'jogando'; }
   if (estado === 'gameOver')  { if (dentroBtn(x, y, LARGURA/2, ALTURA/2 + 100, 220, 55)) reiniciar(); }
@@ -583,6 +590,9 @@ function hud() {
   textSize(10);
   text(nomes[nivelMuscular()], 10, 65);
 
+  // Botão de mudo (canto superior direito, fora do painel)
+  botaoMudo(LARGURA - 36, 88);
+
   // Dica de controles nas primeiras 4 segundos
   if (frameCount < 240) {
     let alpha = map(frameCount, 180, 240, 255, 0);
@@ -591,6 +601,22 @@ function hud() {
     textSize(12);
     text('← → ou arrastar o dedo para mover', LARGURA / 2, ALTURA - 26);
   }
+}
+
+// Botãozinho de mudo — ícone 🔊 ou 🔇
+function botaoMudo(bx, by) {
+  noStroke();
+  fill(0, 0, 0, 120);
+  ellipse(bx, by, 38, 38);
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  text(mutado ? '🔇' : '🔊', bx, by);
+}
+
+// Checa se clicou no botão de mudo (coordenadas já convertidas pela ESCALA)
+function clicouMudo(x, y) {
+  // bx e by iguais ao botaoMudo acima
+  return dist(x, y, LARGURA - 36, 88) < 20;
 }
 
 function barraEnergia() {
@@ -658,7 +684,11 @@ function telaInicio() {
   fill(170, 170, 210);
   textSize(12);
   textAlign(CENTER, CENTER);
-  text('Pegue os pesos! Não deixe nenhum cair!', LARGURA / 2, ALTURA / 2 + 210);
+  text('← → ou arrastar o dedo para mover', LARGURA / 2, ALTURA / 2 + 195);
+  text('Pegue os pesos! Não deixe nenhum cair!', LARGURA / 2, ALTURA / 2 + 213);
+
+  // Botão de mudo
+  botaoMudo(LARGURA - 36, 36);
 }
 
 // ============================================================
@@ -742,6 +772,7 @@ function telaGameOver() {
   text('📊 Fase alcançada: ' + (faseAtual + 1), LARGURA / 2, ALTURA / 2 + 112);
 
   botao(LARGURA / 2, ALTURA / 2 + 160, 220, 55, '🔄 Jogar de novo', color(180, 40, 40), color(220, 80, 80));
+  botaoMudo(LARGURA - 36, 36);
 }
 
 // ============================================================
