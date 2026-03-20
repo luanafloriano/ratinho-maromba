@@ -10,6 +10,37 @@ let mutado          = false; // silenciado?
 let stepAtual       = 0;     // qual passo da sequência estamos
 let proximoTempo    = 0;     // quando tocar o próximo passo
 let timerScheduler  = null;  // referência ao setTimeout do loop
+let audioDesbloqueado = false; // iOS/Android exigem toque antes de tocar áudio
+
+// --- DESBLOQUEIO DE ÁUDIO NO CELULAR ---
+// iOS e Android bloqueiam o Web Audio API até o usuário tocar na tela.
+// Este listener nativo (fora do p5.js) garante que o desbloqueio acontece
+// no momento exato do primeiro toque — único jeito confiável no celular.
+function _desbloquearAudio() {
+  if (audioDesbloqueado) return;
+
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  // Toca um buffer silencioso de 1 amostra — isso "acorda" o iOS
+  let buffer  = audioCtx.createBuffer(1, 1, 22050);
+  let source  = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(audioCtx.destination);
+  source.start(0);
+
+  // Resume caso esteja suspenso (comportamento padrão no Android Chrome)
+  audioCtx.resume().then(function () {
+    audioDesbloqueado = true;
+    // Se o jogo já pediu para tocar música, inicia agora
+    if (musicaTocando) _iniciarLoop();
+  });
+}
+
+// Adiciona listeners nativos para o primeiro toque/clique
+window.addEventListener('touchstart', _desbloquearAudio, { once: true });
+window.addEventListener('mousedown',  _desbloquearAudio, { once: true });
 
 // --- TEMPO ---
 const BPM  = 132;                 // batidas por minuto (energia de academia!)
@@ -65,22 +96,22 @@ let compasso = 0;
 //  (browsers bloqueiam áudio sem interação prévia)
 // ============================================================
 function iniciarMusica() {
-  // Cria o contexto de áudio na primeira vez
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  // Celulares suspendem o áudio automaticamente — reativa
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-
   if (musicaTocando) return; // já está tocando
+  musicaTocando = true;
+  stepAtual     = 0;
+  compasso      = 0;
 
-  musicaTocando  = true;
-  stepAtual      = 0;
-  compasso       = 0;
-  proximoTempo   = audioCtx.currentTime + 0.05;
+  // Se o áudio já foi desbloqueado pelo toque, inicia imediatamente
+  // Senão, _desbloquearAudio() vai chamar _iniciarLoop() quando o toque chegar
+  if (audioDesbloqueado && audioCtx) {
+    audioCtx.resume().then(_iniciarLoop);
+  }
+}
+
+// Inicia o loop interno (só chamado quando o AudioContext está ativo)
+function _iniciarLoop() {
+  if (!musicaTocando) return;
+  proximoTempo = audioCtx.currentTime + 0.05;
   agendar();
 }
 
